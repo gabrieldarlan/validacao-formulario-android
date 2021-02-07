@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">AluraFood</string>
+    <string name="dados_pessoas">Dados Pessoas</string>
+    <string name="nome_completo">Nome completo</string>
+    <string name="cpf">CPF</string>
+    <string name="telefone_com_ddd">Telefone com DDD</string>
+    <string name="e_mail">E-mail</string>
+    <string name="senha">Senha</string>
+    <string name="cadastrar">Cadastrar</string>
+</resources>
