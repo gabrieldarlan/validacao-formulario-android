@@ -3,8 +3,10 @@ package br.com.gdarlan.alurafood.ui.activity;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.EditText;
 
+import br.com.caelum.stella.format.CPFFormatter;
 import br.com.caelum.stella.validation.CPFValidator;
 import br.com.caelum.stella.validation.InvalidStateException;
 import br.com.gdarlan.alurafood.R;
@@ -45,13 +47,26 @@ public class FormularioCadastroActivity extends AppCompatActivity {
     private void configuraCampoCpf() {
         final TextInputLayout textInputCpf = findViewById(R.id.formulario_cadastro_campo_cpf);
         final EditText campoCpf = textInputCpf.getEditText();
+        final CPFFormatter cpfFormatter = new CPFFormatter();
         campoCpf.setOnFocusChangeListener((v, hasFocus) -> {
             final String cpf = campoCpf.getText().toString();
             if (!hasFocus) {
                 if (!validaCampoObrigatorio(textInputCpf, cpf)) return;
                 if (!validaCampoComOnzeDigitos(textInputCpf, cpf)) return;
                 if (!validadorCalculoCpf(textInputCpf, cpf)) return;
+
                 removeErro(textInputCpf);
+
+                final String cpfFormatado = cpfFormatter.format(cpf);
+                campoCpf.setText(cpfFormatado);
+
+            } else {
+                try {
+                    final String cpfSemFormato = cpfFormatter.unformat(cpf);
+                    campoCpf.setText(cpfSemFormato);
+                } catch (IllegalArgumentException e) {
+                    Log.e("erro formatação cpf", e.getMessage());
+                }
             }
         });
     }
