@@ -5,6 +5,8 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.EditText;
 
+import br.com.caelum.stella.validation.CPFValidator;
+import br.com.caelum.stella.validation.InvalidStateException;
 import br.com.gdarlan.alurafood.R;
 
 public class FormularioCadastroActivity extends AppCompatActivity {
@@ -42,7 +44,40 @@ public class FormularioCadastroActivity extends AppCompatActivity {
 
     private void configuraCampoCpf() {
         final TextInputLayout textInputCpf = findViewById(R.id.formulario_cadastro_campo_cpf);
-        adicionaValidacaoPadrao(textInputCpf);
+        final EditText campoCpf = textInputCpf.getEditText();
+        campoCpf.setOnFocusChangeListener((v, hasFocus) -> {
+            final String cpf = campoCpf.getText().toString();
+            if (!hasFocus) {
+                if (!validaCampoObrigatorio(textInputCpf, cpf)) return;
+                if (!validaCampoComOnzeDigitos(textInputCpf, cpf)) return;
+                if (!validadorCalculoCpf(textInputCpf, cpf)) return;
+                removeErro(textInputCpf);
+            }
+        });
+    }
+
+    private boolean validadorCalculoCpf(TextInputLayout textInputCpf, String cpf) {
+        final CPFValidator cpfValidator = new CPFValidator();
+        try {
+            cpfValidator.assertValid(cpf);
+        } catch (InvalidStateException e) {
+            textInputCpf.setError("CPF inválido");
+            return false;
+        }
+        return true;
+    }
+
+    private void removeErro(TextInputLayout textInput) {
+        textInput.setError(null);
+        textInput.setErrorEnabled(false);
+    }
+
+    private boolean validaCampoComOnzeDigitos(TextInputLayout textInputCpf, String cpf) {
+        if (cpf.length() != 11) {
+            textInputCpf.setError("O CPF precisa ter 11 dígitos");
+            return false;
+        }
+        return true;
     }
 
     private void configuraCampoNomeCompleto() {
@@ -55,18 +90,18 @@ public class FormularioCadastroActivity extends AppCompatActivity {
         campo.setOnFocusChangeListener((v, hasFocus) -> {
             final String texto = campo.getText().toString();
             if (!hasFocus) {
-                validaCampoObrigatorio(textInputCampo, texto);
+                if (!validaCampoObrigatorio(textInputCampo, texto)) return;
+                removeErro(textInputCampo);
             }
         });
     }
 
-    private void validaCampoObrigatorio(TextInputLayout textInputCampo, String texto) {
+    private boolean validaCampoObrigatorio(TextInputLayout textInputCampo, String texto) {
         if (texto.isEmpty()) {
             textInputCampo.setError("Campo obrigatório");
-        } else {
-            textInputCampo.setError(null);
-            textInputCampo.setErrorEnabled(false);
+            return false;
         }
+        return true;
     }
 
 }
