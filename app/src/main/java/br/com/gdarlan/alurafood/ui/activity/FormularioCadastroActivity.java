@@ -7,11 +7,13 @@ import android.util.Log;
 import android.widget.EditText;
 
 import br.com.caelum.stella.format.CPFFormatter;
-import br.com.caelum.stella.validation.CPFValidator;
-import br.com.caelum.stella.validation.InvalidStateException;
 import br.com.gdarlan.alurafood.R;
+import br.com.gdarlan.alurafood.validator.ValidaCpf;
+import br.com.gdarlan.alurafood.validator.ValidacaoPadrao;
 
 public class FormularioCadastroActivity extends AppCompatActivity {
+
+    public static final String ERRO_FORMATACAO_CPF = "erro formatação cpf";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,53 +49,28 @@ public class FormularioCadastroActivity extends AppCompatActivity {
     private void configuraCampoCpf() {
         final TextInputLayout textInputCpf = findViewById(R.id.formulario_cadastro_campo_cpf);
         final EditText campoCpf = textInputCpf.getEditText();
-        final CPFFormatter cpfFormatter = new CPFFormatter();
+        final CPFFormatter formatador = new CPFFormatter();
+        final ValidaCpf validador = new ValidaCpf(textInputCpf);
+        assert campoCpf != null;
         campoCpf.setOnFocusChangeListener((v, hasFocus) -> {
-            final String cpf = campoCpf.getText().toString();
-            if (!hasFocus) {
-                if (!validaCampoObrigatorio(textInputCpf, cpf)) return;
-                if (!validaCampoComOnzeDigitos(textInputCpf, cpf)) return;
-                if (!validadorCalculoCpf(textInputCpf, cpf)) return;
-
-                removeErro(textInputCpf);
-
-                final String cpfFormatado = cpfFormatter.format(cpf);
-                campoCpf.setText(cpfFormatado);
-
+            if (hasFocus) {
+                adicionaFormatacao(campoCpf, formatador);
             } else {
-                try {
-                    final String cpfSemFormato = cpfFormatter.unformat(cpf);
-                    campoCpf.setText(cpfSemFormato);
-                } catch (IllegalArgumentException e) {
-                    Log.e("erro formatação cpf", e.getMessage());
-                }
+                validador.estaValido();
             }
         });
     }
 
-    private boolean validadorCalculoCpf(TextInputLayout textInputCpf, String cpf) {
-        final CPFValidator cpfValidator = new CPFValidator();
+    private void adicionaFormatacao(EditText campoCpf, CPFFormatter formatador) {
+        final String cpf = campoCpf.getText().toString();
         try {
-            cpfValidator.assertValid(cpf);
-        } catch (InvalidStateException e) {
-            textInputCpf.setError("CPF inválido");
-            return false;
+            final String cpfSemFormato = formatador.unformat(cpf);
+            campoCpf.setText(cpfSemFormato);
+        } catch (IllegalArgumentException e) {
+            Log.e(ERRO_FORMATACAO_CPF, e.getMessage());
         }
-        return true;
     }
 
-    private void removeErro(TextInputLayout textInput) {
-        textInput.setError(null);
-        textInput.setErrorEnabled(false);
-    }
-
-    private boolean validaCampoComOnzeDigitos(TextInputLayout textInputCpf, String cpf) {
-        if (cpf.length() != 11) {
-            textInputCpf.setError("O CPF precisa ter 11 dígitos");
-            return false;
-        }
-        return true;
-    }
 
     private void configuraCampoNomeCompleto() {
         final TextInputLayout textInputNomeCompleto = findViewById(R.id.formulario_cadastro_campo_nome_completo);
@@ -102,21 +79,13 @@ public class FormularioCadastroActivity extends AppCompatActivity {
 
     private void adicionaValidacaoPadrao(TextInputLayout textInputCampo) {
         final EditText campo = textInputCampo.getEditText();
+        final ValidacaoPadrao validador = new ValidacaoPadrao(textInputCampo);
         campo.setOnFocusChangeListener((v, hasFocus) -> {
-            final String texto = campo.getText().toString();
             if (!hasFocus) {
-                if (!validaCampoObrigatorio(textInputCampo, texto)) return;
-                removeErro(textInputCampo);
+                validador.estaValido();
             }
         });
     }
 
-    private boolean validaCampoObrigatorio(TextInputLayout textInputCampo, String texto) {
-        if (texto.isEmpty()) {
-            textInputCampo.setError("Campo obrigatório");
-            return false;
-        }
-        return true;
-    }
 
 }
