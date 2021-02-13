@@ -8,7 +8,9 @@ import android.widget.EditText;
 
 import br.com.caelum.stella.format.CPFFormatter;
 import br.com.gdarlan.alurafood.R;
+import br.com.gdarlan.alurafood.formatter.FormataTelefoneComDdd;
 import br.com.gdarlan.alurafood.validator.ValidaCpf;
+import br.com.gdarlan.alurafood.validator.ValidaTelefoneComDdd;
 import br.com.gdarlan.alurafood.validator.ValidacaoPadrao;
 
 public class FormularioCadastroActivity extends AppCompatActivity {
@@ -43,8 +45,20 @@ public class FormularioCadastroActivity extends AppCompatActivity {
 
     private void configuraCampoTelefoneComDdd() {
         final TextInputLayout textInputTelefoneComDdd = findViewById(R.id.formulario_cadastro_campo_telefone_com_ddd);
-        adicionaValidacaoPadrao(textInputTelefoneComDdd);
+        final EditText campoTelefoneComDdd = textInputTelefoneComDdd.getEditText();
+        final ValidaTelefoneComDdd validador = new ValidaTelefoneComDdd(textInputTelefoneComDdd);
+        final FormataTelefoneComDdd formatador = new FormataTelefoneComDdd();
+        campoTelefoneComDdd.setOnFocusChangeListener((v, hasFocus) -> {
+            final String telefoneComDdd = campoTelefoneComDdd.getText().toString();
+            if (hasFocus) {
+                final String telefoneComDddSemFormtacao = formatador.remove(telefoneComDdd);
+                campoTelefoneComDdd.setText(telefoneComDddSemFormtacao);
+            } else {
+                validador.estaValido();
+            }
+        });
     }
+
 
     private void configuraCampoCpf() {
         final TextInputLayout textInputCpf = findViewById(R.id.formulario_cadastro_campo_cpf);
@@ -54,14 +68,14 @@ public class FormularioCadastroActivity extends AppCompatActivity {
         assert campoCpf != null;
         campoCpf.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                adicionaFormatacao(campoCpf, formatador);
+                removeFormatacao(campoCpf, formatador);
             } else {
                 validador.estaValido();
             }
         });
     }
 
-    private void adicionaFormatacao(EditText campoCpf, CPFFormatter formatador) {
+    private void removeFormatacao(EditText campoCpf, CPFFormatter formatador) {
         final String cpf = campoCpf.getText().toString();
         try {
             final String cpfSemFormato = formatador.unformat(cpf);
